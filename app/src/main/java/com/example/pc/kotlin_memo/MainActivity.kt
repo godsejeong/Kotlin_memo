@@ -9,6 +9,19 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.ListView
 import kotlinx.android.synthetic.main.activity_main.*
+import com.example.pc.kotlin_memo.R.layout.items
+import android.R.id.edit
+import android.content.Context
+import android.content.SharedPreferences
+import com.google.gson.Gson
+import com.example.pc.kotlin_memo.R.layout.items
+import com.google.gson.reflect.TypeToken
+import com.example.pc.kotlin_memo.R.layout.items
+
+
+
+
+
 
 class MainActivity : AppCompatActivity() {
     var items: ArrayList<Data> = ArrayList()
@@ -16,6 +29,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        adapter = Adapter(this, items, R.layout.items)
+        list_view.adapter=adapter
+        load()
+
         fab.setOnClickListener {
             val intent = Intent(this, Add_Memo::class.java)
             startActivityForResult(intent, 555)
@@ -33,20 +50,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
-
-
-//    fun ListView.itemClick(itemClick: (Int) -> Any): ListView {
-//        this.setOnItemClickListener (object:OnItemClickListener{
-//            override fun onItemClick(parent: AdapterView<out Adapter?>?, view: View?, position: Int, id: Long) {
-//                itemClick(position)
-//            }
-//
-//        })
-//        return this
-//    }
-
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -60,8 +63,29 @@ class MainActivity : AppCompatActivity() {
                 items.add(Data(title,content))
                 adapter = Adapter(this, items, R.layout.items)
                 list_view.adapter=adapter
+                save()
             }
         }
+    }
+
+    fun save(){
+        val pref = getSharedPreferences("pref", Context.MODE_PRIVATE)
+        val editor = pref.edit()
+        val json = Gson().toJson(items)
+        editor.putString("save", json)
+        editor.commit()
+
+    }
+
+    fun load(){
+        val gson = Gson()
+        val pref = getSharedPreferences("pref", Context.MODE_PRIVATE)
+        val json = pref.getString("save", "")
+        var items_: ArrayList<Data>? = ArrayList()
+        items_ = gson.fromJson<Any>(json, object : TypeToken<ArrayList<Data>>() {
+
+        }.type) as ArrayList<Data>?
+        if (items_ != null) items.addAll(items_)
     }
 }
 
